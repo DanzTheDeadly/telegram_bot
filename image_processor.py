@@ -42,7 +42,7 @@ def main(image_path,
     img_blurred = blur(img, blur_radius)
     pixels = img_blurred.getdata()
     pixels_trunc = trunc_colors(pixels, trunc_val)
-    top_n_colors = np.array(get_top_n_colors(pixels_trunc, num_colors)).reshape((1, num_colors, 3))
+    top_n_colors = [get_top_n_colors(pixels_trunc, num_colors)]
     return top_n_colors
 
 
