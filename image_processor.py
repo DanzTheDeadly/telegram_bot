@@ -54,5 +54,5 @@ if __name__ == '__main__':
     fig, ax = plt.subplots()
     fig.patch.set_visible(False)
     ax.axis('off')
-    ax.imshow(top_n_colors)
+    ax.imshow([top_n_colors])
     fig.savefig(RESULT_PATH)
