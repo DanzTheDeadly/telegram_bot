@@ -1,5 +1,7 @@
 from PIL import Image, ImageFilter
 import matplotlib.pyplot as plt
+from io import BytesIO
+import numpy as np
 
 
 IMAGE_PATH = 'ava.jpeg'
@@ -36,7 +38,7 @@ def main_pipeline(image_buffer,
                   num_colors, 
                   trunc_val,  
                   blur_radius):
-    img = Image.open(image_buffer)                              # open
+    img = Image.open(image_buffer)                            # open
     img_blurred = blur(img, blur_radius)                      # blur
     pixels = img_blurred.getdata()                            # transform to list
     pixels_trunc = trunc_colors(pixels, trunc_val)            # reduce color variety
@@ -44,14 +46,20 @@ def main_pipeline(image_buffer,
     return top_n_colors
 
 
+def save_colors(top_n_colors: list[tuple[int, int, int]], buffer):
+    fig, ax = plt.subplots()
+    fig.patch.set_visible(False)
+    ax.axis('off')
+    ax.imshow(np.array(top_n_colors).reshape(2, 4, 3))
+    fig.savefig(buffer, pad_inches=0, bbox_inches='tight')
+
+
 if __name__ == '__main__':
-    with open(IMAGE_PATH, 'rb') as img_buffer:
+    img_buffer = open(IMAGE_PATH, 'rb')
+    with img_buffer:
         top_n_colors = main_pipeline(img_buffer, 
                                      NUM_COLORS, 
                                      TRUNC_VAL, 
                                      BLUR_RADIUS)
-    fig, ax = plt.subplots()
-    fig.patch.set_visible(False)
-    ax.axis('off')
-    ax.imshow([top_n_colors])
-    fig.savefig(RESULT_PATH)
+    with open('palette.png', 'wb') as file:
+        save_colors(top_n_colors, file)
