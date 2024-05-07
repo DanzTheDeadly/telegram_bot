@@ -4,12 +4,6 @@ from io import BytesIO
 import numpy as np
 
 
-IMAGE_PATH = 'ava.jpeg'
-RESULT_PATH = 'palette.png'
-NUM_COLORS = 8
-TRUNC_VAL = 40
-BLUR_RADIUS = 10
-
 
 def blur(img: Image, 
          r: int) -> Image:
@@ -46,20 +40,17 @@ def main_pipeline(image_buffer,
     return top_n_colors
 
 
-def save_colors(top_n_colors: list[tuple[int, int, int]], buffer):
+def save_colors(top_n_colors: list[tuple[int, int, int]], buffer, shape):
     fig, ax = plt.subplots()
     fig.patch.set_visible(False)
     ax.axis('off')
-    ax.imshow(np.array(top_n_colors).reshape(2, 4, 3))
+    ax.imshow(np.array(top_n_colors).reshape(shape))
     fig.savefig(buffer, pad_inches=0, bbox_inches='tight')
 
 
 if __name__ == '__main__':
-    img_buffer = open(IMAGE_PATH, 'rb')
+    img_buffer = open('ava.jpeg', 'rb')
     with img_buffer:
-        top_n_colors = main_pipeline(img_buffer, 
-                                     NUM_COLORS, 
-                                     TRUNC_VAL, 
-                                     BLUR_RADIUS)
+        top_n_colors = main_pipeline(img_buffer, 8, 40, 10)
     with open('palette.png', 'wb') as file:
-        save_colors(top_n_colors, file)
+        save_colors(top_n_colors, file, (4, 2, 3))
