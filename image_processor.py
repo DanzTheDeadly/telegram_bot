@@ -34,7 +34,7 @@ def get_top_n_colors(pixels: list[tuple[int, int, int]],
     return sorted_freqs[:n]
 
 
-def main(image_path,
+def main_pipeline(image_path,
          num_colors, 
          trunc_val,  
          blur_radius):
@@ -47,10 +47,10 @@ def main(image_path,
 
 
 if __name__ == '__main__':
-    top_n_colors = main(IMAGE_PATH, 
-                        NUM_COLORS, 
-                        TRUNC_VAL, 
-                        BLUR_RADIUS)
+    top_n_colors = main_pipeline(IMAGE_PATH, 
+                                 NUM_COLORS, 
+                                 TRUNC_VAL, 
+                                 BLUR_RADIUS)
     fig, ax = plt.subplots()
     fig.patch.set_visible(False)
     ax.axis('off')
