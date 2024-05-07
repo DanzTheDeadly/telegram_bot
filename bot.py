@@ -6,6 +6,12 @@ from io import BytesIO
 from image_processor import main_pipeline, save_colors
 
 
+
+NUM_COLORS = 8
+TRUNC_VAL = 40
+BLUR_RADIUS = 10
+PALETTE_SHAPE = (4, 2, 3)
+
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
@@ -42,24 +48,23 @@ async def get_colors(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ava_buffer = BytesIO()
     with ava_buffer:
         await first_ava_file.download_to_memory(ava_buffer)
-        top_n_colors = main_pipeline(ava_buffer, 8, 40, 10)
+        top_n_colors = main_pipeline(ava_buffer, NUM_COLORS, TRUNC_VAL, BLUR_RADIUS)
     colors_buffer = BytesIO()
     with colors_buffer:
-        save_colors(top_n_colors, colors_buffer)
+        save_colors(top_n_colors, colors_buffer, PALETTE_SHAPE)
         await update.effective_message.reply_photo(colors_buffer.getvalue())
+
 
 
 if __name__ == "__main__":
     with open('conf.yaml') as conf_file:
         conf = yaml.safe_load(conf_file)
-
-    API_TOKEN = conf['API_TOKEN']
-    USERNAME = conf['USERNAME']
-
-    app = ApplicationBuilder().token(API_TOKEN).build()
+        api_token = conf['API_TOKEN']
+        username = conf['USERNAME']
+    app = ApplicationBuilder().token(api_token).build()
     app.add_handler(CommandHandler('start', start))
     app.add_handler(CommandHandler('help', help))
     app.add_handler(CommandHandler('get_colors', get_colors))
-    app.add_handler(MessageHandler(filters.Mention(f'@{USERNAME}'), echo_mention))
+    app.add_handler(MessageHandler(filters.Mention(f'@{username}'), echo_mention))
     app.add_handler(MessageHandler(filters.ALL, echo_reply))
     app.run_polling(allowed_updates=Update.ALL_TYPES)
