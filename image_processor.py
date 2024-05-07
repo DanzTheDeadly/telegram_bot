@@ -1,6 +1,4 @@
 from PIL import Image, ImageFilter
-import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 
 
@@ -34,11 +32,11 @@ def get_top_n_colors(pixels: list[tuple[int, int, int]],
     return sorted_freqs[:n]
 
 
-def main_pipeline(image_path,
-         num_colors, 
-         trunc_val,  
-         blur_radius):
-    img = Image.open(image_path)                              # open
+def main_pipeline(image_buffer,
+                  num_colors, 
+                  trunc_val,  
+                  blur_radius):
+    img = Image.open(image_buffer)                              # open
     img_blurred = blur(img, blur_radius)                      # blur
     pixels = img_blurred.getdata()                            # transform to list
     pixels_trunc = trunc_colors(pixels, trunc_val)            # reduce color variety
@@ -47,10 +45,11 @@ def main_pipeline(image_path,
 
 
 if __name__ == '__main__':
-    top_n_colors = main_pipeline(IMAGE_PATH, 
-                                 NUM_COLORS, 
-                                 TRUNC_VAL, 
-                                 BLUR_RADIUS)
+    with open(IMAGE_PATH, 'rb') as img_buffer:
+        top_n_colors = main_pipeline(img_buffer, 
+                                     NUM_COLORS, 
+                                     TRUNC_VAL, 
+                                     BLUR_RADIUS)
     fig, ax = plt.subplots()
     fig.patch.set_visible(False)
     ax.axis('off')
