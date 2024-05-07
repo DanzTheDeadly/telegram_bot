@@ -38,13 +38,12 @@ def main(image_path,
          num_colors, 
          trunc_val,  
          blur_radius):
-    img = Image.open(image_path)
-    img_blurred = blur(img, blur_radius)
-    pixels = img_blurred.getdata()
-    pixels_trunc = trunc_colors(pixels, trunc_val)
-    top_n_colors = [get_top_n_colors(pixels_trunc, num_colors)]
+    img = Image.open(image_path)                              # open
+    img_blurred = blur(img, blur_radius)                      # blur
+    pixels = img_blurred.getdata()                            # transform to list
+    pixels_trunc = trunc_colors(pixels, trunc_val)            # reduce color variety
+    top_n_colors = get_top_n_colors(pixels_trunc, num_colors) # get N most frequent colors
     return top_n_colors
-
 
 
 if __name__ == '__main__':
