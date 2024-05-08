@@ -6,9 +6,10 @@ from io import BytesIO
 from image_processor import main_pipeline, save_colors
 
 
-NUM_COLORS = 8
-TRUNC_VAL = 40
-BLUR_RADIUS = 10
+CONTRAST_COEF = 1.5
+BLUR_RADIUS = 5
+TRUNC_COLORS = 64
+PALETTE_SIZE = 8
 PALETTE_SHAPE = (2, 4, 3)
 
 logging.basicConfig(
@@ -49,14 +50,16 @@ async def get_colors(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except IndexError:
         await update.effective_message.reply_text(text=f'@{user.username}, Не вижу аватарок :(')
         return
-    ava_buffer = BytesIO()
-    with ava_buffer:
-        await first_ava_file.download_to_memory(ava_buffer)
-        top_n_colors = main_pipeline(ava_buffer, NUM_COLORS, TRUNC_VAL, BLUR_RADIUS)
-    colors_buffer = BytesIO()
-    with colors_buffer:
-        save_colors(top_n_colors, colors_buffer, PALETTE_SHAPE)
-        await update.effective_message.reply_photo(colors_buffer.getvalue(), caption=f'@{user.username}, твой вайб состоит из этих цветов')
+    with BytesIO() as in_file:
+        await first_ava_file.download_to_memory(in_file)
+        top_n_colors = main_pipeline(in_file,
+                                     CONTRAST_COEF,
+                                     BLUR_RADIUS,
+                                     TRUNC_COLORS,
+                                     PALETTE_SIZE)
+    with BytesIO() as out_file:
+        save_colors(top_n_colors, out_file, PALETTE_SHAPE)
+        await update.effective_message.reply_photo(out_file.getvalue(), caption=f'@{user.username}, твой вайб состоит из этих цветов')
 
 
 
