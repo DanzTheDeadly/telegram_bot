@@ -1,26 +1,12 @@
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageEnhance
 import matplotlib.pyplot as plt
 from io import BytesIO
 import numpy as np
 
 
-
-def blur(img: Image, 
-         r: int) -> Image:
-    return img.filter(ImageFilter.BoxBlur(r))
-
-
-def trunc_colors(pixels: list[tuple[int, int, int]],
-                 trunc: int) -> list[tuple[int, int, int]]:
-    trunc_func = lambda val: (val // trunc * trunc)
-    res = []
-    for pixel in pixels:
-        res.append(tuple(map(trunc_func, pixel)))
-    return res
-
-
-def get_top_n_colors(pixels: list[tuple[int, int, int]],
+def get_top_n_colors(img: Image, 
                      n: int) -> list[tuple[int, int, int]]:
+    pixels = img.getdata()
     freqs = dict()
     for pixel in pixels:
         freqs[pixel] = 1 if not freqs.get(pixel) else freqs[pixel] + 1
@@ -28,19 +14,22 @@ def get_top_n_colors(pixels: list[tuple[int, int, int]],
     return sorted_freqs[:n]
 
 
-def main_pipeline(image_buffer,
-                  num_colors, 
-                  trunc_val,  
-                  blur_radius):
+def main_pipeline(image_buffer: BytesIO,
+                  contrast_coef: float,
+                  blur_radius: int,
+                  trunc_colors: int,
+                  palette_size: int) -> list[tuple[int, int, int]]:
     img = Image.open(image_buffer)                            # open
-    img_blurred = blur(img, blur_radius)                      # blur
-    pixels = img_blurred.getdata()                            # transform to list
-    pixels_trunc = trunc_colors(pixels, trunc_val)            # reduce color variety
-    top_n_colors = get_top_n_colors(pixels_trunc, num_colors) # get N most frequent colors
+    img = ImageEnhance.Contrast(img).enhance(contrast_coef)   # increase contrast
+    img = img.filter(ImageFilter.BoxBlur(blur_radius))        # blur
+    img = img.quantize(trunc_colors).convert('RGB')           # truncate colors
+    top_n_colors = get_top_n_colors(img, palette_size)        # get N most frequent colors
     return top_n_colors
 
 
-def save_colors(top_n_colors: list[tuple[int, int, int]], buffer, shape):
+def save_colors(top_n_colors: list[tuple[int, int, int]], 
+                buffer: BytesIO, 
+                shape: tuple[int, int, int]):
     fig, ax = plt.subplots()
     fig.patch.set_visible(False)
     ax.axis('off')
@@ -51,6 +40,6 @@ def save_colors(top_n_colors: list[tuple[int, int, int]], buffer, shape):
 if __name__ == '__main__':
     img_buffer = open('ava.jpeg', 'rb')
     with img_buffer:
-        top_n_colors = main_pipeline(img_buffer, 8, 40, 10)
+        top_n_colors = main_pipeline(img_buffer, 1.5, 5, 64, 9)
     with open('palette.png', 'wb') as file:
-        save_colors(top_n_colors, file, (4, 2, 3))
+        save_colors(top_n_colors, file, (3, 3, 3))
